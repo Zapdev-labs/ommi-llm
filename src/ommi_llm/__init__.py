@@ -20,7 +20,7 @@ Example:
     >>> output = model.generate("What is the capital of France?")
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.3"
 __author__ = "Ommi Team"
 
 from .core.engine import LayerWiseInferenceEngine
