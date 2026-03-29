@@ -139,6 +139,162 @@ class LayerWiseInferenceEngine(ABC):
         self.config = AutoConfig.from_pretrained(path, trust_remote_code=True)
         logger.debug(f"Config loaded: {self.config.model_type}")
 
+        # Fix missing vocab_size for some models (e.g., Qwen3.5)
+        # Some models store vocab_size in text_config or don't have it explicitly
+        if not hasattr(self.config, "vocab_size"):
+            # Try to find vocab_size in nested config structures
+            vocab_size = None
+
+            # Check text_config (common in multi-modal models)
+            if hasattr(self.config, "text_config") and self.config.text_config:
+                vocab_size = getattr(self.config.text_config, "vocab_size", None)
+
+            # Check if tokenizer knows the vocab size
+            if vocab_size is None and self.tokenizer is not None:
+                vocab_size = len(self.tokenizer)
+
+            # Default fallback - try to get from model files if available
+            if vocab_size is None:
+                try:
+                    import json
+
+                    vocab_file = Path(path) / "vocab.json"
+                    if vocab_file.exists():
+                        with open(vocab_file) as f:
+                            vocab = json.load(f)
+                            vocab_size = len(vocab)
+                except:
+                    pass
+
+            # Last resort: use a reasonable default based on model type
+            if vocab_size is None:
+                model_type = getattr(self.config, "model_type", "").lower()
+                if "qwen" in model_type:
+                    vocab_size = 151936  # Qwen default vocab size
+                elif "llama" in model_type:
+                    vocab_size = 128256  # Llama 3 vocab size
+                elif "gemma" in model_type:
+                    vocab_size = 256000  # Gemma default
+                else:
+                    vocab_size = 32000  # Generic fallback
+
+            # Set vocab_size on config
+            self.config.vocab_size = vocab_size
+            logger.debug(f"Set missing vocab_size to {vocab_size}")
+
+        # Fix missing hidden_size for some models
+        if not hasattr(self.config, "hidden_size"):
+            hidden_size = None
+
+            # Check text_config
+            if hasattr(self.config, "text_config") and self.config.text_config:
+                hidden_size = getattr(self.config.text_config, "hidden_size", None)
+
+            # Default fallback based on model type
+            if hidden_size is None:
+                model_type = getattr(self.config, "model_type", "").lower()
+                if "qwen3_5" in model_type or "qwen3.5" in model_type:
+                    hidden_size = 4096  # Qwen3.5 9B hidden size
+                elif "qwen" in model_type:
+                    hidden_size = 4096  # Qwen default
+                elif "llama" in model_type:
+                    hidden_size = 4096  # Llama default
+                elif "gemma" in model_type:
+                    hidden_size = 3072  # Gemma default
+                else:
+                    hidden_size = 4096  # Generic fallback
+
+            self.config.hidden_size = hidden_size
+            logger.debug(f"Set missing hidden_size to {hidden_size}")
+
+        # Fix missing num_hidden_layers for some models
+        if not hasattr(self.config, "num_hidden_layers"):
+            num_layers = None
+
+            # Check text_config
+            if hasattr(self.config, "text_config") and self.config.text_config:
+                num_layers = getattr(self.config.text_config, "num_hidden_layers", None)
+
+            # Default fallback based on model type
+            if num_layers is None:
+                model_type = getattr(self.config, "model_type", "").lower()
+                if "qwen3_5" in model_type or "qwen3.5" in model_type:
+                    num_layers = 40  # Qwen3.5 9B layers
+                elif "qwen" in model_type:
+                    num_layers = 32  # Qwen default
+                elif "llama" in model_type:
+                    num_layers = 32  # Llama default
+                elif "gemma" in model_type:
+                    num_layers = 28  # Gemma default
+                else:
+                    num_layers = 32  # Generic fallback
+
+            self.config.num_hidden_layers = num_layers
+            logger.debug(f"Set missing num_hidden_layers to {num_layers}")
+
+        # Fix missing num_attention_heads for some models
+        if not hasattr(self.config, "num_attention_heads"):
+            num_heads = None
+
+            # Check text_config
+            if hasattr(self.config, "text_config") and self.config.text_config:
+                num_heads = getattr(self.config.text_config, "num_attention_heads", None)
+
+            # Default fallback based on model type and hidden_size
+            if num_heads is None:
+                model_type = getattr(self.config, "model_type", "").lower()
+                hidden_size = getattr(self.config, "hidden_size", 4096)
+                # Common head dimension is 128, so num_heads = hidden_size / 128
+                num_heads = hidden_size // 128
+
+            self.config.num_attention_heads = num_heads
+            logger.debug(f"Set missing num_attention_heads to {num_heads}")
+
+        # Fix Qwen3.5 specific attributes
+        model_type = getattr(self.config, "model_type", "").lower()
+        if "qwen3_5" in model_type or "qwen3.5" in model_type or "qwen" in model_type:
+            # Qwen3.5 uses layer_types to specify different layer types (attention, mlp, etc.)
+            if not hasattr(self.config, "layer_types"):
+                # Default layer pattern for Qwen3.5: all "standard" layers
+                num_layers = getattr(self.config, "num_hidden_layers", 40)
+                self.config.layer_types = ["standard"] * num_layers
+                logger.debug(f"Set missing layer_types for Qwen3.5")
+
+            # Fix other common Qwen-specific attributes
+            if not hasattr(self.config, "num_key_value_heads"):
+                # GQA (Grouped Query Attention) - Qwen3.5 uses 8 KV heads
+                self.config.num_key_value_heads = 8
+                logger.debug(f"Set missing num_key_value_heads to 8")
+
+            if not hasattr(self.config, "max_position_embeddings"):
+                self.config.max_position_embeddings = 131072  # 128K context
+                logger.debug(f"Set missing max_position_embeddings to 131072")
+
+            if not hasattr(self.config, "sliding_window"):
+                self.config.sliding_window = 4096
+                logger.debug(f"Set missing sliding_window to 4096")
+
+            if not hasattr(self.config, "rope_theta"):
+                self.config.rope_theta = 1000000.0  # RoPE base frequency
+                logger.debug(f"Set missing rope_theta to 1000000.0")
+
+            if not hasattr(self.config, "rms_norm_eps"):
+                self.config.rms_norm_eps = 1e-6
+                logger.debug(f"Set missing rms_norm_eps to 1e-6")
+
+            if not hasattr(self.config, "use_sliding_window"):
+                self.config.use_sliding_window = False
+                logger.debug(f"Set missing use_sliding_window to False")
+
+            if not hasattr(self.config, "attention_dropout"):
+                self.config.attention_dropout = 0.0
+                logger.debug(f"Set missing attention_dropout to 0.0")
+
+            if not hasattr(self.config, "rope_scaling"):
+                # Qwen3.5 uses dynamic RoPE scaling
+                self.config.rope_scaling = {"type": "dynamic", "factor": 4.0}
+                logger.debug(f"Set missing rope_scaling to dynamic with factor 4.0")
+
         # Setup layer names
         self.set_layer_names_dict()
 
