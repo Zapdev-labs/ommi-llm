@@ -7,6 +7,7 @@ from .baichuan import BaichuanAdapter
 from .chatglm import ChatGLMAdapter
 from .internlm import InternLMAdapter
 from .mixtral import MixtralAdapter
+from .generic import GenericAdapter
 
 __all__ = [
     "ModelAdapter",
@@ -17,4 +18,5 @@ __all__ = [
     "ChatGLMAdapter",
     "InternLMAdapter",
     "MixtralAdapter",
+    "GenericAdapter",
 ]
