@@ -25,10 +25,14 @@ from . import __version__
 from .core.auto_model import AutoModel
 from .persistence.sharder import ModelSharder
 from .utils.memory import MemoryManager
+from .cli_compression import app as compress_app
 
 app = typer.Typer(
     name="ommi", help="Ommi LLM - Run 70B+ models on consumer GPUs", no_args_is_help=True
 )
+
+# Add compress subcommand
+app.add_typer(compress_app, name="compress", help="Compress and optimize models")
 console = Console()
 
 # Default cache directory
