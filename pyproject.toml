@@ -3,14 +3,14 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "ommi-llm"
+name = "ommi-llm-zapdev"
 version = "0.2.3"
 description = "Run 70B+ LLMs on consumer GPUs with layer-wise inference"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [
-    {name = "Ommi Team"}
+    {name = "ZapDev Labs"}
 ]
 keywords = ["llm", "inference", "memory-efficient", "layer-wise", "transformers"]
 classifiers = [
@@ -54,20 +54,20 @@ dev = [
 ]
 
 [project.scripts]
-ommi = "ommi_llm.cli:main"
+ommi = "ommi_llm_zapdev.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/ommi-ai/ommi-llm"
-Documentation = "https://github.com/ommi-ai/ommi-llm#readme"
-Repository = "https://github.com/ommi-ai/ommi-llm"
-Issues = "https://github.com/ommi-ai/ommi-llm/issues"
+Homepage = "https://github.com/zapdev-labs/ommi-llm"
+Documentation = "https://github.com/zapdev-labs/ommi-llm#readme"
+Repository = "https://github.com/zapdev-labs/ommi-llm"
+Issues = "https://github.com/zapdev-labs/ommi-llm/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/ommi_llm"]
+packages = ["src/ommi_llm_zapdev"]
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "/src",
+    "/src/ommi_llm_zapdev",
     "/tests",
     "/README.md",
     "/LICENSE",
