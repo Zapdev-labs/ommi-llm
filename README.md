@@ -16,7 +16,8 @@ Ommi LLM is a memory-efficient inference engine that enables running large langu
 - **🔧 Quantization Support**: 4-bit and 8-bit compression for 3x speedup
 - **🎯 Multi-Architecture**: Supports Llama, Mistral, Qwen, Mixtral, Baichuan, ChatGLM, InternLM
 - **🔗 MCP Server**: Model management via Model Context Protocol
-- **🎨 Skill System**: Pluggable optimizations for different use cases
+- **🎨 TUI**: Modern terminal user interface with model management and chat
+- **🔧 Skill System**: Pluggable optimizations for different use cases
 
 ## 📊 Performance
 
@@ -57,6 +58,9 @@ print(output)
 ### CLI Usage
 
 ```bash
+# Launch the interactive TUI (Terminal User Interface)
+ommi tui
+
 # Show memory stats
 ommi memory
 
@@ -69,6 +73,37 @@ ommi shard "meta-llama/Llama-2-70b-chat" ./sharded-model
 # List supported architectures
 ommi list-architectures
 ```
+
+## 🎨 TUI (Terminal User Interface)
+
+Ommi LLM includes a modern, interactive TUI built with [OpenTUI](https://opentui.com) for a beautiful terminal experience.
+
+### Features
+
+- **🖥️ Model Manager**: Browse, download, and manage HuggingFace models
+- **💬 Interactive Chat**: Chat with downloaded models
+- **🧠 Memory Monitor**: Real-time system and GPU memory statistics
+- **📦 Model Sharding**: Pre-shard models for faster loading
+
+### Requirements
+
+The TUI requires [Bun](https://bun.sh) runtime (installed automatically on first run).
+
+### Launching
+
+```bash
+# Launch the TUI
+ommi tui
+```
+
+### Navigation
+
+| Key | Action |
+|-----|--------|
+| `↑` / `↓` | Navigate menus |
+| `Enter` | Select item |
+| `ESC` | Go back |
+| `Ctrl+C` | Exit |
 
 ## 🏗️ Architecture
 

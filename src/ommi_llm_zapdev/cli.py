@@ -430,6 +430,24 @@ def list_architectures():
     console.print(table)
 
 
+@app.command()
+def tui():
+    """Launch the interactive TUI (Terminal User Interface)."""
+    from .tui_launcher import launch_tui
+
+    console.print(
+        Panel.fit(
+            "[bold blue]Launching Ommi LLM TUI...[/]\n"
+            "[dim]A modern terminal interface for managing models[/]",
+            title="ommi-llm",
+            border_style="blue",
+        )
+    )
+
+    exit_code = launch_tui()
+    raise typer.Exit(exit_code)
+
+
 def main():
     """Entry point for CLI."""
     app()

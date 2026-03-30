@@ -1,0 +1,3 @@
+include src/ommi_llm_zapdev/tui/*.ts
+include src/ommi_llm_zapdev/tui/*.json
+include src/ommi_llm_zapdev/tui/README.md

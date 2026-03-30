@@ -1,0 +1,18 @@
+{
+  "name": "ommi-llm-tui",
+  "version": "0.2.3",
+  "description": "Terminal UI for ommi-llm - Run 70B+ models on consumer GPUs",
+  "type": "module",
+  "scripts": {
+    "start": "bun run index.ts",
+    "dev": "bun run --watch index.ts",
+    "build": "bun build index.ts --outfile=dist/ommi-tui --compile"
+  },
+  "dependencies": {
+    "@opentui/core": "^0.1.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^20.0.0"
+  }
+}
